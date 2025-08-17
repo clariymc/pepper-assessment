@@ -98,15 +98,13 @@ function VoiceRecognition({ onResult, onError, isListening, onListeningChange })
 }
 
 function ChatInterface() {
-  const [conversation, setConversation] = React.useState(null)
-  const [questionnaire, setQuestionnaire] = React.useState(null)
   const [messages, setMessages] = React.useState([])
-  
   const [inputValue, setInputValue] = React.useState('')
   const [isListening, setIsListening] = React.useState(false)
   const [voiceSupported, setVoiceSupported] = React.useState(true)
   const [voiceError, setVoiceError] = React.useState('')
   const [speechEnabled, setSpeechEnabled] = React.useState(true)
+  const [userHasInteracted, setUserHasInteracted] = React.useState(false)
   
   // Consultation state
   const [currentPhase, setCurrentPhase] = React.useState('introduction')
@@ -114,19 +112,14 @@ function ChatInterface() {
     anaesthetic_history: '',
     medical_problems: '',
     allergies: '',
-    medications: '',
-    detailed_answers: {}
+    medications: ''
   })
-  const [detailedQuestionsMode, setDetailedQuestionsMode] = React.useState(false)
-  const [currentDetailSection, setCurrentDetailSection] = React.useState(0)
-  const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0)
-  const [mdasiScore, setMdasiScore] = React.useState(0)
   
   const messagesEndRef = React.useRef(null)
   
-  // Speech synthesis function
+  // Speech synthesis function that waits for user interaction
   const speakText = React.useCallback((text) => {
-    if (!speechEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) {
+    if (!speechEnabled || !userHasInteracted || typeof window === 'undefined' || !('speechSynthesis' in window)) {
       return Promise.resolve()
     }
     
@@ -138,20 +131,15 @@ function ChatInterface() {
       utterance.rate = 0.8
       utterance.pitch = 1
       
-      // Wait for voices to load
       const setVoiceAndSpeak = () => {
         const voices = window.speechSynthesis.getVoices()
-        const preferredVoices = [
-          voices.find(voice => voice.name.includes('Google UK English Female')),
-          voices.find(voice => voice.name.includes('Microsoft Hazel')),
-          voices.find(voice => voice.name.includes('Karen')),
-          voices.find(voice => voice.lang === 'en-GB' && voice.gender === 'female'),
-          voices.find(voice => voice.lang.startsWith('en-GB')),
-          voices.find(voice => voice.lang.startsWith('en') && voice.localService)
-        ].find(voice => voice)
+        const preferredVoice = voices.find(voice => 
+          voice.lang.startsWith('en') && 
+          (voice.name.includes('Female') || voice.name.includes('Karen') || voice.name.includes('Hazel'))
+        ) || voices.find(voice => voice.lang.startsWith('en-GB')) || voices.find(voice => voice.lang.startsWith('en'))
         
-        if (preferredVoices) {
-          utterance.voice = preferredVoices
+        if (preferredVoice) {
+          utterance.voice = preferredVoice
         }
         
         utterance.onend = () => resolve()
@@ -169,29 +157,17 @@ function ChatInterface() {
         setVoiceAndSpeak()
       }
     })
-  }, [speechEnabled])
+  }, [speechEnabled, userHasInteracted])
   
-  // Load conversation and questionnaire data
+  // Initialize consultation
   React.useEffect(() => {
-    Promise.all([
-      fetch('/conversation.json').then(res => res.json()),
-      fetch('/questionnaire.json').then(res => res.json())
-    ])
-    .then(([conversationData, questionnaireData]) => {
-      setConversation(conversationData)
-      setQuestionnaire(questionnaireData)
-      
-      // Start the consultation
-      const introMessage = conversationData.consultation_phases.introduction.prompt
-      addMessage(introMessage, false)
-      
-      // Speak introduction after a delay
-      setTimeout(() => {
-        speakText(introMessage)
-      }, 1000)
-    })
-    .catch(console.error)
-  }, [speakText])
+    const initMessage = "Hi, I'm Pepper, your pre-operative assessment assistant. I'm here to gather some important information before your operation. This will help your medical team plan the safest care for you."
+    addMessage(initMessage, false)
+    
+    setTimeout(() => {
+      addMessage("To get started, could you tell me about any previous experience you've had with general anaesthetics? Have you or any family members had any problems with anaesthetics?", false)
+    }, 2000)
+  }, [])
   
   // Check voice support
   React.useEffect(() => {
@@ -212,72 +188,40 @@ function ChatInterface() {
   
   const addPepperMessage = async (text) => {
     addMessage(text, false)
-    await new Promise(resolve => setTimeout(resolve, 500))
-    await speakText(text)
+    if (userHasInteracted) {
+      await new Promise(resolve => setTimeout(resolve, 500))
+      await speakText(text)
+    }
   }
   
   const moveToNextPhase = async () => {
-    const phases = ['introduction', 'anaesthetic_history', 'medical_problems', 'allergies', 'medications', 'review_and_detail']
+    const phases = ['introduction', 'anaesthetic_history', 'medical_problems', 'allergies', 'medications', 'complete']
     const currentIndex = phases.indexOf(currentPhase)
     
     if (currentIndex < phases.length - 1) {
       const nextPhase = phases[currentIndex + 1]
       setCurrentPhase(nextPhase)
       
-      if (nextPhase === 'review_and_detail') {
-        await addPepperMessage("Thank you for that information. Let me now ask some specific questions to make sure I have all the details we need for your safe care.")
-        setDetailedQuestionsMode(true)
-        startDetailedQuestions()
-      } else {
-        const nextPrompt = conversation.consultation_phases[nextPhase].prompt
+      let nextPrompt = ''
+      switch (nextPhase) {
+        case 'medical_problems':
+          nextPrompt = "Thank you. Now, could you tell me about any medical problems or conditions you have? Please include anything you're seeing a doctor for, any ongoing health issues, or conditions you've been diagnosed with."
+          break
+        case 'allergies':
+          nextPrompt = "That's helpful information. Do you have any allergies? This includes allergies to medications, foods, latex, or anything else. If you do have allergies, please tell me what you're allergic to and what happens when you're exposed to it."
+          break
+        case 'medications':
+          nextPrompt = "Good to know. What medications do you take regularly? Please include prescription medications, over-the-counter medicines, herbal remedies, vitamins, and supplements. You can tell me the names or describe what they're for."
+          break
+        case 'complete':
+          nextPrompt = "Thank you for providing all that information. Based on what you've told me, I may ask some follow-up questions to ensure we have all the details needed for your safe care. This has been very helpful for your medical team."
+          break
+        default:
+          nextPrompt = "Thank you for that information."
+      }
+      
+      if (nextPrompt) {
         await addPepperMessage(nextPrompt)
-      }
-    }
-  }
-  
-  const startDetailedQuestions = async () => {
-    if (questionnaire && questionnaire.sections.length > 0) {
-      const firstSection = questionnaire.sections[0]
-      const firstQuestion = firstSection.questions[0]
-      await addPepperMessage(`Let's start with some personal information. ${firstQuestion.text}`)
-    }
-  }
-  
-  const processDetailedQuestion = async (answer) => {
-    const currentSection = questionnaire.sections[currentDetailSection]
-    const currentQuestion = currentSection.questions[currentQuestionIndex]
-    
-    // Save answer
-    setConsultationData(prev => ({
-      ...prev,
-      detailed_answers: {
-        ...prev.detailed_answers,
-        [currentQuestion.id]: answer
-      }
-    }))
-    
-    // Calculate MDASI score if in that section
-    if (currentSection.id === 'mdasi_score' && currentQuestion.score) {
-      const scoreValue = currentQuestion.score[answer.toLowerCase()] || 0
-      setMdasiScore(prev => prev + scoreValue)
-    }
-    
-    // Move to next question
-    if (currentQuestionIndex < currentSection.questions.length - 1) {
-      setCurrentQuestionIndex(prev => prev + 1)
-      const nextQuestion = currentSection.questions[currentQuestionIndex + 1]
-      await addPepperMessage(nextQuestion.text)
-    } else {
-      // Move to next section
-      if (currentDetailSection < questionnaire.sections.length - 1) {
-        setCurrentDetailSection(prev => prev + 1)
-        setCurrentQuestionIndex(0)
-        const nextSection = questionnaire.sections[currentDetailSection + 1]
-        const nextQuestion = nextSection.questions[0]
-        await addPepperMessage(`Now let's talk about ${nextSection.title.toLowerCase()}. ${nextQuestion.text}`)
-      } else {
-        // Complete assessment
-        await addPepperMessage("That completes your pre-operative assessment. Thank you for providing all this important information. Your medical team will review this before your operation.")
       }
     }
   }
@@ -309,26 +253,36 @@ function ChatInterface() {
     const userInput = voiceInput || inputValue
     if (!userInput.trim()) return
     
+    // Mark that user has interacted (enables speech)
+    if (!userHasInteracted) {
+      setUserHasInteracted(true)
+    }
+    
     addMessage(userInput, true)
     
-    if (detailedQuestionsMode) {
-      await processDetailedQuestion(userInput)
-    } else {
-      // Save to consultation data based on current phase
-      setConsultationData(prev => ({
-        ...prev,
-        [currentPhase]: userInput
-      }))
-      
-      // Acknowledge and move to next phase
-      await addPepperMessage("Thank you for that information.")
-      await moveToNextPhase()
-    }
+    // Save to consultation data based on current phase
+    setConsultationData(prev => ({
+      ...prev,
+      [currentPhase]: userInput
+    }))
+    
+    // Acknowledge and move to next phase
+    setTimeout(async () => {
+      await addPepperMessage("Thank you for sharing that with me.")
+      setTimeout(() => {
+        moveToNextPhase()
+      }, 1500)
+    }, 1000)
     
     setInputValue('')
   }
   
   const toggleListening = () => {
+    // Mark user interaction
+    if (!userHasInteracted) {
+      setUserHasInteracted(true)
+    }
+    
     if (isListening) {
       voiceRecognition.stopListening()
     } else {
@@ -343,21 +297,11 @@ function ChatInterface() {
     }
   }
   
-  if (!conversation || !questionnaire) {
-    return (
-      <div style={{ 
-        minHeight: '100vh', 
-        backgroundColor: '#f9fafb',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center'
-      }}>
-        <div style={{ textAlign: 'center' }}>
-          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🤖</div>
-          <div style={{ fontSize: '18px', color: '#6b7280' }}>Preparing your consultation...</div>
-        </div>
-      </div>
-    )
+  const handleTextareaClick = () => {
+    // Mark user interaction when they click the textarea
+    if (!userHasInteracted) {
+      setUserHasInteracted(true)
+    }
   }
   
   return (
@@ -367,6 +311,34 @@ function ChatInterface() {
       display: 'flex',
       flexDirection: 'column'
     }}>
+      {/* Voice not supported banner */}
+      {!voiceSupported && (
+        <div style={{
+          backgroundColor: '#fef3cd',
+          border: '1px solid #facc15',
+          padding: '12px 16px',
+          textAlign: 'center',
+          fontSize: '14px',
+          color: '#92400e'
+        }}>
+          🎤 Voice recognition is not supported in your browser. You can still type your responses.
+        </div>
+      )}
+      
+      {/* Voice error banner */}
+      {voiceError && (
+        <div style={{
+          backgroundColor: '#fee2e2',
+          border: '1px solid #f87171',
+          padding: '12px 16px',
+          textAlign: 'center',
+          fontSize: '14px',
+          color: '#dc2626'
+        }}>
+          🎤 Voice error: {voiceError}. Please try again or type your response.
+        </div>
+      )}
+      
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
@@ -419,7 +391,80 @@ function ChatInterface() {
               style={{
                 padding: '6px 12px',
                 border: 'none',
-                backgroundColor: isListening ? '#DC2626' : '#003087',
+                borderRadius: '6px',
+                backgroundColor: speechEnabled ? '#009639' : '#6b7280',
+                color: 'white',
+                fontSize: '12px',
+                cursor: 'pointer'
+              }}
+              title={speechEnabled ? 'Speech enabled' : 'Speech disabled'}
+            >
+              {speechEnabled ? '🔊 ON' : '🔇 OFF'}
+            </button>
+            
+            <div style={{ 
+              fontSize: '12px', 
+              color: '#6b7280',
+              backgroundColor: '#f3f4f6',
+              padding: '4px 8px',
+              borderRadius: '12px'
+            }}>
+              {currentPhase === 'introduction' ? 'Starting' : 
+               currentPhase === 'anaesthetic_history' ? 'Anaesthetic History' :
+               currentPhase === 'medical_problems' ? 'Medical History' :
+               currentPhase === 'allergies' ? 'Allergies' :
+               currentPhase === 'medications' ? 'Medications' : 'Complete'}
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* Chat Messages */}
+      <div style={{ 
+        flex: 1, 
+        maxWidth: '768px', 
+        margin: '0 auto',
+        width: '100%',
+        padding: '20px',
+        paddingBottom: '140px'
+      }}>
+        {messages.map((message, index) => (
+          <ChatBubble 
+            key={`${message.timestamp}-${index}`}
+            message={message.text} 
+            isUser={message.isUser}
+          />
+        ))}
+        <div ref={messagesEndRef} />
+      </div>
+      
+      {/* Input Area */}
+      <div style={{
+        position: 'fixed',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'white',
+        borderTop: '1px solid #e5e7eb',
+        padding: '16px'
+      }}>
+        <div style={{ maxWidth: '768px', margin: '0 auto' }}>
+          <form onSubmit={handleSubmit} style={{ 
+            display: 'flex', 
+            gap: '12px',
+            alignItems: 'flex-end'
+          }}>
+            {voiceSupported && (
+              <button
+                type="button"
+                onClick={toggleListening}
+                disabled={isListening}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: isListening ? '#DC2626' : '#003087',
                   color: 'white',
                   cursor: isListening ? 'not-allowed' : 'pointer',
                   display: 'flex',
@@ -440,6 +485,7 @@ function ChatInterface() {
               <textarea
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
+                onClick={handleTextareaClick}
                 placeholder={isListening ? "Listening... Speak now!" : "Tell me about your medical history, or click the microphone to speak..."}
                 disabled={isListening}
                 rows={3}
