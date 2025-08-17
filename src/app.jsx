@@ -1,7 +1,12 @@
 import React from 'react'
-import { jsPDF } from 'jspdf'
-import { createWorker } from 'tesseract.js'
+import ReactDOM from 'react-dom/client'
 import './index.css'
+
+function ChatBubble({ message, isUser }) {
+  return (
+    <div style={{ 
+      display: 'flex', 
+      justifyContent: isUser ? 'flex-end' : '
 
 /* ---------------------- Chat bubble (simple, clean) ---------------------- */
 function ChatBubble({ message, isUser }) {

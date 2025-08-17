@@ -1,0 +1,86 @@
+{
+    "consultation_phases": {
+      "introduction": {
+        "type": "greeting",
+        "prompt": "Hi, I'm Pepper, your pre-operative assessment assistant. I'm here to gather some important information before your operation. This will help your medical team plan the safest care for you. Is that okay with you?",
+        "speak": true,
+        "next": "anaesthetic_history"
+      },
+      "anaesthetic_history": {
+        "type": "open_question",
+        "prompt": "Let's start with your anaesthetic history. Have you ever had a general anaesthetic before? If yes, please tell me about any problems you or your family have had with anaesthetics.",
+        "speak": true,
+        "follow_up_prompts": [
+          "Can you tell me more about what type of problems occurred?",
+          "Was this a problem with you personally or a family member?",
+          "Do you know what caused the problem?"
+        ],
+        "next": "medical_problems"
+      },
+      "medical_problems": {
+        "type": "open_question", 
+        "prompt": "Now, could you tell me about any medical problems or conditions you have? Please include anything you're seeing a doctor for, any ongoing health issues, or conditions you've been diagnosed with.",
+        "speak": true,
+        "follow_up_prompts": [
+          "Can you tell me more about your [CONDITION]?",
+          "How long have you had this condition?",
+          "How well controlled is your [CONDITION]?",
+          "Are you seeing a specialist for this?"
+        ],
+        "next": "allergies"
+      },
+      "allergies": {
+        "type": "open_question",
+        "prompt": "Do you have any allergies? This includes allergies to medications, foods, latex, or anything else. If you do have allergies, please tell me what you're allergic to and what happens when you're exposed to it.",
+        "speak": true,
+        "follow_up_prompts": [
+          "What exactly happens when you're exposed to [ALLERGEN]?",
+          "How severe is this allergic reaction?", 
+          "Have you ever been told this was anaphylaxis?",
+          "Do you carry emergency medication like an EpiPen?"
+        ],
+        "next": "medications"
+      },
+      "medications": {
+        "type": "open_question",
+        "prompt": "What medications do you take regularly? Please include prescription medications, over-the-counter medicines, herbal remedies, vitamins, and supplements. You can tell me the names or describe what they're for.",
+        "speak": true,
+        "follow_up_prompts": [
+          "How often do you take [MEDICATION]?",
+          "What dose of [MEDICATION] do you take?",
+          "Are you taking this medication as prescribed?",
+          "Have you had any recent changes to your medications?"
+        ],
+        "next": "review_and_detail"
+      },
+      "review_and_detail": {
+        "type": "review",
+        "prompt": "Thank you for that information. Let me now ask some specific questions to make sure I have all the details we need for your safe care.",
+        "speak": true,
+        "next": "detailed_questions"
+      },
+      "detailed_questions": {
+        "type": "systematic_review",
+        "prompt": "I'll now go through some specific questions about different aspects of your health.",
+        "speak": true,
+        "next": "final_review"
+      }
+    },
+    "detailed_assessment_areas": [
+      "demographics",
+      "mdasi_score", 
+      "lifestyle",
+      "musculoskeletal",
+      "surgical_history",
+      "respiratory",
+      "cardiovascular", 
+      "endocrine",
+      "gastroenterology",
+      "renal_urology",
+      "gynaecology",
+      "haematology",
+      "liver",
+      "neurology_mental_health",
+      "expectations_concerns"
+    ]
+  }
