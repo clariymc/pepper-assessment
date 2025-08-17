@@ -48,6 +48,66 @@ function ChatBubble({ message, isUser }) {
   )
 }
 
+function VoiceRecognition({ onResult, onError, isListening, onListeningChange }) {
+  const recognitionRef = React.useRef(null)
+  
+  React.useEffect(() => {
+    // Check if browser supports speech recognition
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    
+    if (SpeechRecognition) {
+      const recognition = new SpeechRecognition()
+      recognition.continuous = false
+      recognition.interimResults = false
+      recognition.lang = 'en-GB'
+      
+      recognition.onstart = () => {
+        console.log('Voice recognition started')
+      }
+      
+      recognition.onresult = (event) => {
+        const transcript = event.results[0][0].transcript
+        console.log('Voice recognition result:', transcript)
+        onResult(transcript)
+      }
+      
+      recognition.onerror = (event) => {
+        console.error('Voice recognition error:', event.error)
+        onError(event.error)
+        onListeningChange(false)
+      }
+      
+      recognition.onend = () => {
+        console.log('Voice recognition ended')
+        onListeningChange(false)
+      }
+      
+      recognitionRef.current = recognition
+    }
+  }, [onResult, onError, onListeningChange])
+  
+  const startListening = () => {
+    if (recognitionRef.current && !isListening) {
+      try {
+        recognitionRef.current.start()
+        onListeningChange(true)
+      } catch (error) {
+        console.error('Failed to start voice recognition:', error)
+        onError('Failed to start voice recognition')
+      }
+    }
+  }
+  
+  const stopListening = () => {
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop()
+      onListeningChange(false)
+    }
+  }
+  
+  return { startListening, stopListening }
+}
+
 function ChatInterface() {
   // Define the conversation flow
   const questions = [
@@ -80,15 +140,26 @@ function ChatInterface() {
   
   const [messages, setMessages] = React.useState([
     { text: "Hi I'm Pepper and I'd like to help complete your preoperative assessment!", isUser: false },
-    { text: "I'll guide you through some questions about your health. You can type your answers. If you want to change a previous answer, just say 'go back' or 'previous question'.", isUser: false },
+    { text: "I'll guide you through some questions about your health. You can type your answers or use the microphone to speak them. If you want to change a previous answer, just say 'go back'.", isUser: false },
     { text: questions[0].text, isUser: false }
   ])
   
   const [inputValue, setInputValue] = React.useState('')
   const [currentQuestionIndex, setCurrentQuestionIndex] = React.useState(0)
   const [answers, setAnswers] = React.useState({})
+  const [isListening, setIsListening] = React.useState(false)
+  const [voiceSupported, setVoiceSupported] = React.useState(true)
+  const [voiceError, setVoiceError] = React.useState('')
   
   const messagesEndRef = React.useRef(null)
+  
+  // Check voice support on component mount
+  React.useEffect(() => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition
+    if (!SpeechRecognition) {
+      setVoiceSupported(false)
+    }
+  }, [])
   
   // Auto-scroll to bottom when new messages are added
   React.useEffect(() => {
@@ -98,6 +169,28 @@ function ChatInterface() {
   const addMessage = (text, isUser) => {
     setMessages(prev => [...prev, { text, isUser }])
   }
+  
+  const handleVoiceResult = (transcript) => {
+    setInputValue(transcript)
+    setIsListening(false)
+    // Automatically submit the voice input after a short delay
+    setTimeout(() => {
+      handleSubmit(null, transcript)
+    }, 500)
+  }
+  
+  const handleVoiceError = (error) => {
+    setVoiceError(error)
+    setIsListening(false)
+    setTimeout(() => setVoiceError(''), 3000)
+  }
+  
+  const voiceRecognition = VoiceRecognition({
+    onResult: handleVoiceResult,
+    onError: handleVoiceError,
+    isListening,
+    onListeningChange: setIsListening
+  })
   
   const goBackToPreviousQuestion = () => {
     if (currentQuestionIndex > 0) {
@@ -144,30 +237,32 @@ function ChatInterface() {
       setTimeout(() => {
         addMessage(`Thank you! I heard: "${userAnswer}". That completes our assessment!`, false)
         setTimeout(() => {
-          addMessage("Great! We've covered all the basic questions. In the full version, I'll generate a summary for you to review. For now, you can type 'go back' to change any answers.", false)
+          addMessage("Great! We've covered all the basic questions. In the full version, I'll generate a summary for you to review. For now, you can type or say 'go back' to change any answers.", false)
         }, 1500)
       }, 1000)
     }
   }
   
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    if (!inputValue.trim()) return
+  const handleSubmit = (e, voiceInput = null) => {
+    if (e) e.preventDefault()
     
-    const userInput = inputValue.trim().toLowerCase()
+    const userInput = voiceInput || inputValue
+    if (!userInput.trim()) return
+    
+    const lowerInput = userInput.trim().toLowerCase()
     
     // Add user message
-    addMessage(inputValue, true)
+    addMessage(userInput, true)
     
     // Check for go back commands
-    if (userInput.includes('go back') || 
-        userInput.includes('previous') || 
-        userInput.includes('last question') ||
-        userInput === 'back') {
+    if (lowerInput.includes('go back') || 
+        lowerInput.includes('previous') || 
+        lowerInput.includes('last question') ||
+        lowerInput === 'back') {
       goBackToPreviousQuestion()
     } else {
       // Process normal answer
-      moveToNextQuestion(inputValue)
+      moveToNextQuestion(userInput)
     }
     
     setInputValue('')
@@ -177,6 +272,14 @@ function ChatInterface() {
     goBackToPreviousQuestion()
   }
   
+  const toggleListening = () => {
+    if (isListening) {
+      voiceRecognition.stopListening()
+    } else {
+      voiceRecognition.startListening()
+    }
+  }
+  
   return (
     <div style={{ 
       minHeight: '100vh', 
@@ -184,6 +287,34 @@ function ChatInterface() {
       display: 'flex',
       flexDirection: 'column'
     }}>
+      {/* Voice not supported banner */}
+      {!voiceSupported && (
+        <div style={{
+          backgroundColor: '#fef3cd',
+          border: '1px solid #facc15',
+          padding: '12px 16px',
+          textAlign: 'center',
+          fontSize: '14px',
+          color: '#92400e'
+        }}>
+          🎤 Voice recognition is not supported in your browser. You can still type your responses.
+        </div>
+      )}
+      
+      {/* Voice error banner */}
+      {voiceError && (
+        <div style={{
+          backgroundColor: '#fee2e2',
+          border: '1px solid #f87171',
+          padding: '12px 16px',
+          textAlign: 'center',
+          fontSize: '14px',
+          color: '#dc2626'
+        }}>
+          🎤 Voice error: {voiceError}. Please try again or type your response.
+        </div>
+      )}
+      
       {/* Header */}
       <div style={{
         backgroundColor: 'white',
@@ -225,6 +356,7 @@ function ChatInterface() {
                 color: '#6b7280'
               }}>
                 Question {currentQuestionIndex + 1} of {questions.length}
+                {voiceSupported && ' • Voice enabled 🎤'}
               </p>
             </div>
           </div>
@@ -249,7 +381,7 @@ function ChatInterface() {
         margin: '0 auto',
         width: '100%',
         padding: '20px',
-        paddingBottom: '120px'
+        paddingBottom: '140px'
       }}>
         {messages.map((message, index) => (
           <ChatBubble 
@@ -277,19 +409,49 @@ function ChatInterface() {
             gap: '12px',
             alignItems: 'flex-end'
           }}>
+            {/* Microphone Button */}
+            {voiceSupported && (
+              <button
+                type="button"
+                onClick={toggleListening}
+                disabled={isListening}
+                style={{
+                  width: '48px',
+                  height: '48px',
+                  borderRadius: '50%',
+                  border: 'none',
+                  backgroundColor: isListening ? '#DC2626' : '#003087',
+                  color: 'white',
+                  cursor: isListening ? 'not-allowed' : 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '20px',
+                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+                  transform: isListening ? 'scale(1.1)' : 'scale(1)',
+                  transition: 'all 0.2s'
+                }}
+                title={isListening ? 'Listening... Click to stop' : 'Click to speak'}
+              >
+                {isListening ? '🔴' : '🎤'}
+              </button>
+            )}
+            
             <div style={{ flex: 1 }}>
               <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
-                placeholder="Type your answer or say 'go back' to change previous answer..."
+                placeholder={isListening ? "Listening... Speak now!" : "Type your answer or click the microphone to speak..."}
+                disabled={isListening}
                 style={{
                   width: '100%',
                   padding: '12px 16px',
                   border: '1px solid #d1d5db',
                   borderRadius: '24px',
                   fontSize: '16px',
-                  outline: 'none'
+                  outline: 'none',
+                  backgroundColor: isListening ? '#f3f4f6' : 'white'
                 }}
               />
               <div style={{ 
@@ -300,16 +462,21 @@ function ChatInterface() {
                 fontSize: '12px',
                 color: '#6b7280'
               }}>
-                <span>Say "go back" to change previous answers</span>
+                <span>
+                  {voiceSupported 
+                    ? (isListening ? "🎤 Listening..." : "Type or speak your answer • Say 'go back' to change previous answers")
+                    : "Type your answer • Say 'go back' to change previous answers"
+                  }
+                </span>
                 <button
                   type="button"
                   onClick={handleGoBackButton}
-                  disabled={currentQuestionIndex === 0}
+                  disabled={currentQuestionIndex === 0 || isListening}
                   style={{
                     background: 'none',
                     border: 'none',
-                    color: currentQuestionIndex === 0 ? '#9ca3af' : '#00A9CE',
-                    cursor: currentQuestionIndex === 0 ? 'not-allowed' : 'pointer',
+                    color: (currentQuestionIndex === 0 || isListening) ? '#9ca3af' : '#00A9CE',
+                    cursor: (currentQuestionIndex === 0 || isListening) ? 'not-allowed' : 'pointer',
                     fontSize: '12px'
                   }}
                 >
@@ -320,13 +487,13 @@ function ChatInterface() {
             
             <button
               type="submit"
-              disabled={!inputValue.trim()}
+              disabled={!inputValue.trim() || isListening}
               className="btn btn-primary"
               style={{
                 borderRadius: '24px',
                 padding: '12px 24px',
-                opacity: inputValue.trim() ? 1 : 0.5,
-                cursor: inputValue.trim() ? 'pointer' : 'not-allowed'
+                opacity: (inputValue.trim() && !isListening) ? 1 : 0.5,
+                cursor: (inputValue.trim() && !isListening) ? 'pointer' : 'not-allowed'
               }}
             >
               Send
