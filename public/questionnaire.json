@@ -1,0 +1,540 @@
+{
+    "sections": [
+      {
+        "id": "daily_living",
+        "title": "Activities of Daily Living and Social History",
+        "icon": "🏠",
+        "questions": [
+          {
+            "id": "living_situation",
+            "text": "Let's start with your daily living situation. How would you describe your current living arrangement?",
+            "expectedAnswerType": "single-select",
+            "expectedOptions": ["live alone", "with family", "with partner", "residential care", "nursing home", "other", "live with friends", "live with girlfriend", "live with boyfriend", "homeless"],
+            "clarification": "I'm sorry, we need to know your living situation for your safety planning. Please could you tell me if you live alone, with family, in residential care, or another arrangement?",
+            "required": true,
+            "section": "Activities of Daily Living and Social History"
+          },
+          {
+            "id": "mobility",
+            "text": "How would you describe your mobility?",
+            "expectedAnswerType": "single-select",
+            "expectedOptions": ["fully mobile", "walk with aid", "walking stick", "walking frame", "wheelchair user", "bedbound"],
+            "clarification": "I'm sorry, we need to know about your mobility for your care planning. Please could you tell me if you are fully mobile, use a walking aid, use a wheelchair, or have other mobility needs?",
+            "required": true,
+            "section": "Activities of Daily Living and Social History"
+          },
+          {
+            "id": "smoking",
+            "text": "Do you smoke or have you smoked in the past?",
+            "expectedAnswerType": "single-select",
+            "expectedOptions": ["never smoked", "ex-smoker", "current smoker", "quit", "stopped"],
+            "clarification": "I'm sorry, we need to know your smoking history for the anaesthetic plan. Please could you tell me if you have never smoked, are an ex-smoker, or currently smoke?",
+            "required": true,
+            "section": "Activities of Daily Living and Social History",
+            "hasFollowUp": true,
+            "followUpTriggers": ["ex-smoker", "current smoker", "smoke", "smoked", "quit", "stopped"],
+            "followUpQuestions": [
+              "How many cigarettes per day did you or do you smoke?",
+              "When did you start smoking?",
+              "If you've quit, when did you stop smoking?"
+            ]
+          },
+          {
+            "id": "alcohol",
+            "text": "How many units of alcohol do you drink per week?",
+            "expectedAnswerType": "number-or-none",
+            "expectedOptions": ["number", "none", "zero", "don't drink", "no alcohol"],
+            "clarification": "I'm sorry, we need to know about alcohol consumption for your safety. Please could you give me a number of units per week, or say 'none' if you don't drink alcohol?",
+            "required": false,
+            "section": "Activities of Daily Living and Social History"
+          }
+        ]
+      },
+      {
+        "id": "anaesthetic",
+        "title": "Anaesthetic History",
+        "icon": "💉",
+        "questions": [
+          {
+            "id": "previous_anaesthetic",
+            "text": "Have you had a general anaesthetic before?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no", "never", "not sure", "don't know"],
+            "clarification": "I'm sorry, we need to know about previous anaesthetics for your safety. Please could you tell me yes or no if you've had a general anaesthetic before?",
+            "required": true,
+            "section": "Anaesthetic History"
+          },
+          {
+            "id": "anaesthetic_problems",
+            "text": "Have you or any family members had problems with anaesthetics?",
+            "expectedAnswerType": "text-or-none",
+            "expectedOptions": ["specific problems", "none", "no problems", "don't know"],
+            "clarification": "I'm sorry, we need to know about any anaesthetic problems in you or your family for safety. Please could you describe any problems or say 'none' if there haven't been any?",
+            "required": true,
+            "section": "Anaesthetic History",
+            "hasFollowUp": true,
+            "followUpTriggers": ["problems", "difficult", "allergic", "reaction", "complications"],
+            "followUpQuestions": [
+              "Could you describe what problems occurred with the anaesthetic?",
+              "Was this with you personally or a family member?",
+              "Do you know what type of anaesthetic caused the problem?"
+            ]
+          },
+          {
+            "id": "difficult_intubation",
+            "text": "Have you been told you have a difficult airway or breathing tube placement?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no", "don't know", "not sure"],
+            "clarification": "I'm sorry, we need to know about airway difficulties for safety. Please say yes or no if you've been told about difficult airway or breathing tube problems?",
+            "required": false,
+            "section": "Anaesthetic History"
+          }
+        ]
+      },
+      {
+        "id": "surgical",
+        "title": "Surgical History",
+        "icon": "✂️",
+        "questions": [
+          {
+            "id": "previous_surgery",
+            "text": "Have you had any previous operations?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no", "never", "not sure"],
+            "clarification": "I'm sorry, we need to know about previous operations for planning. Please say yes or no if you've had any operations before?",
+            "required": true,
+            "section": "Surgical History"
+          },
+          {
+            "id": "surgery_details",
+            "text": "Please describe your previous operations and approximate dates, or say none if you haven't had any.",
+            "expectedAnswerType": "text-or-none",
+            "expectedOptions": ["surgery names", "dates", "none", "no operations"],
+            "clarification": "I'm sorry, we need details about previous operations. Please could you tell me what operations you've had and roughly when, or say 'none'?",
+            "required": false,
+            "section": "Surgical History",
+            "hasFollowUp": true,
+            "followUpTriggers": ["surgery", "operation", "appendix", "gallbladder", "hernia", "joint", "heart", "bypass"],
+            "followUpQuestions": [
+              "Were there any complications with your [CONDITION]?",
+              "How did you recover from the [CONDITION]?",
+              "Are you still under follow-up care for any of these operations?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "respiratory",
+        "title": "Respiratory",
+        "icon": "🫁",
+        "questions": [
+          {
+            "id": "breathing_problems",
+            "text": "Do you have any breathing problems or lung conditions?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["asthma", "COPD", "sleep apnoea", "pneumonia", "lung disease", "breathing problems", "none", "no problems"],
+            "clarification": "I'm sorry, we need to know about breathing conditions for your anaesthetic safety. Please could you tell me about any lung problems like asthma, COPD, sleep apnoea, or say 'none'?",
+            "required": true,
+            "section": "Respiratory",
+            "hasFollowUp": true,
+            "followUpTriggers": ["asthma", "COPD", "sleep apnoea", "pneumonia", "lung disease", "breathing problems", "copd", "emphysema", "bronchitis"],
+            "followUpQuestions": [
+              "Could you tell me more about your [CONDITION]? When was it diagnosed?",
+              "How well controlled is your [CONDITION]? Do you have symptoms regularly?",
+              "What medications or treatments do you use for your [CONDITION]?",
+              "Have you been hospitalized for your [CONDITION] in the past year?"
+            ]
+          },
+          {
+            "id": "shortness_breath",
+            "text": "Do you get short of breath?",
+            "expectedAnswerType": "single-select",
+            "expectedOptions": ["never", "only on exertion", "at rest", "unable to lie flat"],
+            "clarification": "I'm sorry, we need to know about breathlessness. Please say never, only on exertion, at rest, or unable to lie flat?",
+            "required": true,
+            "section": "Respiratory"
+          },
+          {
+            "id": "inhalers",
+            "text": "Do you use any inhalers?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you use any inhalers?",
+            "required": false,
+            "section": "Respiratory",
+            "hasFollowUp": true,
+            "followUpTriggers": ["yes", "salbutamol", "ventolin", "steroid", "inhaler"],
+            "followUpQuestions": [
+              "What inhalers do you use? Please name them if you know.",
+              "How often do you need to use your reliever inhaler?",
+              "Do you use a preventer inhaler daily?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "cardiovascular",
+        "title": "Cardiovascular",
+        "icon": "❤️",
+        "questions": [
+          {
+            "id": "heart_conditions",
+            "text": "Do you have any heart conditions?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["high blood pressure", "heart attack", "angina", "heart failure", "irregular heartbeat", "pacemaker", "none", "no heart problems"],
+            "clarification": "I'm sorry, we need to know about heart conditions for your anaesthetic safety. Please could you tell me about any heart problems or say 'none'?",
+            "required": true,
+            "section": "Cardiovascular",
+            "hasFollowUp": true,
+            "followUpTriggers": ["high blood pressure", "heart attack", "angina", "heart failure", "irregular heartbeat", "pacemaker", "hypertension", "cardiac", "arrhythmia"],
+            "followUpQuestions": [
+              "Could you tell me more about your [CONDITION]? When was it diagnosed?",
+              "What medications do you take for your [CONDITION]?",
+              "Have you had any recent changes in your [CONDITION] or its treatment?",
+              "Do you see a cardiologist or heart specialist regularly?"
+            ]
+          },
+          {
+            "id": "chest_pain",
+            "text": "Do you get chest pain?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you get chest pain?",
+            "required": true,
+            "section": "Cardiovascular",
+            "hasFollowUp": true,
+            "followUpTriggers": ["yes"],
+            "followUpQuestions": [
+              "When do you get chest pain? During exercise, at rest, or other times?",
+              "How would you describe the chest pain?",
+              "What helps relieve the chest pain?"
+            ]
+          },
+          {
+            "id": "exercise_tolerance",
+            "text": "How far can you walk on the flat before stopping?",
+            "expectedAnswerType": "single-select",
+            "expectedOptions": ["more than 1 mile", "half to 1 mile", "100 to 500 yards", "less than 100 yards", "cannot walk"],
+            "clarification": "I'm sorry, we need to know your exercise tolerance. Please could you tell me: more than 1 mile, half to 1 mile, 100-500 yards, less than 100 yards, or cannot walk?",
+            "required": true,
+            "section": "Cardiovascular"
+          }
+        ]
+      },
+      {
+        "id": "endocrine",
+        "title": "Endocrine",
+        "icon": "🔬",
+        "questions": [
+          {
+            "id": "diabetes",
+            "text": "Do you have diabetes?",
+            "expectedAnswerType": "single-select",
+            "expectedOptions": ["no", "type 1 diabetes", "type 2 diabetes", "gestational diabetes"],
+            "clarification": "Please say no, type 1 diabetes, type 2 diabetes, or gestational diabetes?",
+            "required": true,
+            "section": "Endocrine",
+            "hasFollowUp": true,
+            "followUpTriggers": ["type 1", "type 2", "gestational", "diabetes", "diabetic"],
+            "followUpQuestions": [
+              "How do you manage your diabetes? With diet, tablets, or insulin?",
+              "How well controlled is your diabetes? Do you check your blood sugar?",
+              "Have you had any complications from diabetes?",
+              "When did you last see your diabetes specialist?"
+            ]
+          },
+          {
+            "id": "thyroid",
+            "text": "Do you have any thyroid problems?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you have thyroid problems?",
+            "required": false,
+            "section": "Endocrine",
+            "hasFollowUp": true,
+            "followUpTriggers": ["yes", "hyperthyroid", "hypothyroid", "thyroid"],
+            "followUpQuestions": [
+              "What thyroid condition do you have? Overactive or underactive?",
+              "What medications do you take for your thyroid?",
+              "When did you last have your thyroid levels checked?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "neurology",
+        "title": "Neurology and Mental Health",
+        "icon": "🧠",
+        "questions": [
+          {
+            "id": "neurological_conditions",
+            "text": "Do you have any brain or nervous system conditions?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["epilepsy", "stroke", "dementia", "Parkinson's disease", "multiple sclerosis", "none"],
+            "clarification": "Please tell me about any brain or nerve conditions like epilepsy, stroke, Parkinson's, or say 'none'?",
+            "required": true,
+            "section": "Neurology and Mental Health",
+            "hasFollowUp": true,
+            "followUpTriggers": ["epilepsy", "stroke", "dementia", "Parkinson", "multiple sclerosis", "seizures", "fits"],
+            "followUpQuestions": [
+              "Could you tell me more about your [CONDITION]? When was it diagnosed?",
+              "What medications do you take for your [CONDITION]?",
+              "How does your [CONDITION] affect your daily life?",
+              "Have you had any recent changes in your [CONDITION]?"
+            ]
+          },
+          {
+            "id": "mental_health",
+            "text": "Do you have any mental health conditions?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["depression", "anxiety", "PTSD", "bipolar disorder", "none"],
+            "clarification": "Please tell me about any mental health conditions like depression, anxiety, or say 'none'?",
+            "required": false,
+            "section": "Neurology and Mental Health",
+            "hasFollowUp": true,
+            "followUpTriggers": ["depression", "anxiety", "PTSD", "bipolar", "mental health"],
+            "followUpQuestions": [
+              "What treatment do you receive for your [CONDITION]?",
+              "Are you taking any medications for your [CONDITION]?",
+              "How are you feeling currently with your [CONDITION]?"
+            ]
+          }
+        ]
+      },
+      {
+        "id": "gastroenterology",
+        "title": "Gastroenterology",
+        "icon": "🔄",
+        "questions": [
+          {
+            "id": "stomach_problems",
+            "text": "Do you have any stomach or bowel problems?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["acid reflux", "peptic ulcer", "inflammatory bowel disease", "IBS", "none"],
+            "clarification": "Please tell me about any stomach or bowel problems like reflux, ulcers, IBS, or say 'none'?",
+            "required": false,
+            "section": "Gastroenterology",
+            "hasFollowUp": true,
+            "followUpTriggers": ["acid reflux", "peptic ulcer", "IBD", "IBS", "Crohn's", "colitis", "stomach", "bowel"],
+            "followUpQuestions": [
+              "How do you manage your [CONDITION]?",
+              "What medications do you take for your [CONDITION]?",
+              "How severe are your symptoms currently?"
+            ]
+          },
+          {
+            "id": "nausea_vomiting",
+            "text": "Do you suffer from nausea and vomiting?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you suffer from nausea and vomiting?",
+            "required": false,
+            "section": "Gastroenterology"
+          }
+        ]
+      },
+      {
+        "id": "liver",
+        "title": "Liver",
+        "icon": "🛡️",
+        "questions": [
+          {
+            "id": "liver_disease",
+            "text": "Do you have any liver problems?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you have liver problems?",
+            "required": false,
+            "section": "Liver",
+            "hasFollowUp": true,
+            "followUpTriggers": ["yes", "hepatitis", "cirrhosis", "liver disease", "fatty liver"],
+            "followUpQuestions": [
+              "What liver condition do you have?",
+              "What caused your liver problem?",
+              "Are you under specialist care for your liver?"
+            ]
+          },
+          {
+            "id": "jaundice",
+            "text": "Have you ever been jaundiced or yellow?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you've ever been jaundiced?",
+            "required": false,
+            "section": "Liver"
+          }
+        ]
+      },
+      {
+        "id": "renal",
+        "title": "Renal and Urology",
+        "icon": "💧",
+        "questions": [
+          {
+            "id": "kidney_problems",
+            "text": "Do you have any kidney problems?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you have kidney problems?",
+            "required": false,
+            "section": "Renal and Urology",
+            "hasFollowUp": true,
+            "followUpTriggers": ["yes", "kidney disease", "renal failure", "dialysis", "kidney stones"],
+            "followUpQuestions": [
+              "What kidney problem do you have?",
+              "Are you on dialysis or do you have a kidney transplant?",
+              "What medications do you take for your kidneys?"
+            ]
+          },
+          {
+            "id": "urinary_problems",
+            "text": "Do you have any urinary problems?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["frequent urination", "difficulty passing urine", "blood in urine", "incontinence", "none"],
+            "clarification": "Please tell me about urinary problems like frequent urination, difficulty, blood, incontinence, or say 'none'?",
+            "required": false,
+            "section": "Renal and Urology"
+          }
+        ]
+      },
+      {
+        "id": "gynaecology",
+        "title": "Gynaecology",
+        "icon": "👤",
+        "questions": [
+          {
+            "id": "pregnant",
+            "text": "Are you pregnant or could you be pregnant?",
+            "expectedAnswerType": "yes-no",
+            "expectedOptions": ["yes", "no"],
+            "clarification": "Please say yes or no if you are or could be pregnant?",
+            "required": false,
+            "section": "Gynaecology"
+          },
+          {
+            "id": "last_period",
+            "text": "When was your last menstrual period?",
+            "expectedAnswerType": "date-or-na",
+            "expectedOptions": ["date", "not applicable", "don't remember"],
+            "clarification": "Please give an approximate date or say 'not applicable'?",
+            "required": false,
+            "section": "Gynaecology"
+          }
+        ]
+      },
+      {
+        "id": "rheumatology",
+        "title": "Rheumatology and Musculoskeletal",
+        "icon": "🦴",
+        "questions": [
+          {
+            "id": "joint_problems",
+            "text": "Do you have any joint or muscle problems?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["arthritis", "back problems", "neck problems", "joint replacement", "none"],
+            "clarification": "Please tell me about joint or muscle problems like arthritis, back pain, joint replacements, or say 'none'?",
+            "required": false,
+            "section": "Rheumatology and Musculoskeletal",
+            "hasFollowUp": true,
+            "followUpTriggers": ["arthritis", "back problems", "neck problems", "joint replacement", "rheumatoid", "osteoarthritis"],
+            "followUpQuestions": [
+              "Could you tell me more about your [CONDITION]?",
+              "What treatments do you have for your [CONDITION]?",
+              "Does your [CONDITION] limit your daily activities?"
+            ]
+          },
+          {
+            "id": "mobility_aids",
+            "text": "Do you use any mobility aids?",
+            "expectedAnswerType": "multi-select-or-none",
+            "expectedOptions": ["walking stick", "walking frame", "wheelchair", "none"],
+            "clarification": "Please tell me about mobility aids like walking stick, frame, wheelchair, or say 'none'?",
+            "required": false,
+            "section": "Rheumatology and Musculoskeletal"
+          }
+        ]
+      },
+      {
+        "id": "medications",
+        "title": "Medications and Allergies",
+        "icon": "💊",
+        "questions": [
+          {
+            "id": "current_medications",
+            "text": "Please list your current medications, including tablets, inhalers, injections, and patches. If none, just say none.",
+            "expectedAnswerType": "text-or-none",
+            "expectedOptions": ["medication names", "none"],
+            "clarification": "Please list all your medications or say 'none' if you don't take any?",
+            "required": false,
+            "section": "Medications and Allergies",
+            "hasFollowUp": true,
+            "followUpTriggers": ["medication", "tablet", "pill", "drug", "medicine", "prescription"],
+            "followUpQuestions": [
+              "How often do you take each medication?",
+              "Do you have any problems taking your medications?",
+              "Have you had any recent changes to your medications?"
+            ]
+          },
+          {
+            "id": "allergies",
+            "text": "Do you have any allergies? Please include medications, foods, latex, and describe the reaction. If none, say none.",
+            "expectedAnswerType": "text-or-none",
+            "expectedOptions": ["allergy descriptions", "none"],
+            "clarification": "Please describe any allergies and reactions, or say 'none'?",
+            "required": false,
+            "section": "Medications and Allergies",
+            "hasFollowUp": true,
+            "followUpTriggers": ["allergy", "allergic", "reaction", "rash", "anaphylaxis", "penicillin"],
+            "followUpQuestions": [
+              "What exactly happens when you're exposed to [CONDITION]?",
+              "How severe is your allergic reaction?",
+              "Do you carry emergency medication like an EpiPen?"
+            ]
+          },
+          {
+            "id": "herbal_supplements",
+            "text": "Do you take any herbal remedies or supplements?",
+            "expectedAnswerType": "text-or-none",
+            "expectedOptions": ["supplement names", "none"],
+            "clarification": "Please list any herbal remedies or supplements, or say 'none'?",
+            "required": false,
+            "section": "Medications and Allergies"
+          }
+        ]
+      },
+      {
+        "id": "concerns",
+        "title": "Patient Expectations, Fears or Concerns",
+        "icon": "💬",
+        "questions": [
+          {
+            "id": "main_concerns",
+            "text": "Do you have any particular concerns about your operation or anaesthetic?",
+            "expectedAnswerType": "text-or-none",
+            "expectedOptions": ["concerns", "fears", "worries", "none"],
+            "clarification": "Please share any concerns or worries, or say 'none'?",
+            "required": false,
+            "section": "Patient Expectations, Fears or Concerns"
+          },
+          {
+            "id": "expectations",
+            "text": "What are your expectations from this operation? What do you hope to achieve?",
+            "expectedAnswerType": "text",
+            "expectedOptions": ["expectations", "goals", "hopes"],
+            "clarification": "Please tell me what you hope to achieve from this operation?",
+            "required": false,
+            "section": "Patient Expectations, Fears or Concerns"
+          },
+          {
+            "id": "additional_info",
+            "text": "Is there anything else you would like to tell us about your health?",
+            "expectedAnswerType": "text-or-none",
+            "expectedOptions": ["additional information", "none"],
+            "clarification": "Please share any other health information, or say 'none'?",
+            "required": false,
+            "section": "Patient Expectations, Fears or Concerns"
+          }
+        ]
+      }
+    ]
+  }
